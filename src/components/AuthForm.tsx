@@ -20,11 +20,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose, type }) => {
       alert('please enter the required values');
       return;
     }
-    console.log(
-      `calling login at ${BASE_URL + '/user/login'} with data --> `,
-      email,
-      password
-    );
+    // console.log(
+    //   `calling login at ${BASE_URL + '/user/login'} with data --> `,
+    //   email,
+    //   password
+    // );
     setLoading(true);
 
     const { data } = await axios.post(
@@ -51,17 +51,18 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose, type }) => {
   };
 
   const handleSignup = async () => {
+    if (!name || !email || !password) {
+      console.log('missing values');
+      alert('please enter the required values');
+      return;
+    }
     // console.log(
     //   `calling signup at ${BASE_URL + '/user/signup'} with data --> `,
     //   name,
     //   email,
     //   password
     // );
-    if (!name || !email || !password) {
-      console.log('missing values');
-      alert('please enter the required values');
-      return;
-    }
+
     setLoading(true);
 
     const { data } = await axios.post(
