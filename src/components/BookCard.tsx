@@ -10,7 +10,7 @@ interface propsType {
 
 const ProductCard: React.FC<propsType> = ({ book, handleBuyBook }) => {
   return (
-    <div className="p-4 border border-gray-200 rounded-xl min-w-[200px] max-w-[400px]">
+    <div className="p-4 border border-gray-200 rounded-xl min-w-[300px] max-w-[400px]">
       <div>
         <Image
           src={book.cover_image}

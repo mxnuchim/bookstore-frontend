@@ -170,7 +170,7 @@ const Books = () => {
           />
         </div>
 
-        <div className="hidden lg:block py-7">
+        <div className="hidden md:block py-7">
           <div className="container">
             <div className="flex w-fit gap-10 mx-auto font-medium py-4 text-blackish">
               <a
@@ -192,7 +192,7 @@ const Books = () => {
         {!Boolean(productsData.length) ? (
           <LoadingView animationType="empty" message="No books to show" />
         ) : list.toLowerCase() === 'home' ? (
-          <div className="grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
+          <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
             {data.map((item, index) => (
               <ProductCard book={item} key={index} />
             ))}
@@ -202,7 +202,7 @@ const Books = () => {
         {!Boolean(productsData.length) ? (
           <LoadingView animationType="empty" message="No books to show" />
         ) : list.toLowerCase() === 'my books' ? (
-          <div className="grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
+          <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
             {data.map((item, index) => (
               <ProductCard book={item} key={index} />
             ))}
