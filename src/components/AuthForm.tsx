@@ -43,6 +43,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose, type }) => {
     if (data.status === 200) {
       alert("You've logged in!");
       sessionStorage.setItem('user', JSON.stringify(data.data));
+      window.location.reload();
+    } else if (
+      data.status === 400 ||
+      data.status === 401 ||
+      data.status === 404
+    ) {
+      alert('Invalid credentials');
+    } else {
+      alert('Something went wrong');
     }
     setLoading(false);
     onClose();
@@ -82,6 +91,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose, type }) => {
     if (data.status === 200) {
       alert("You've signed up!");
       sessionStorage.setItem('user', JSON.stringify(data.data));
+      window.location.reload();
     }
     setLoading(false);
     onClose();

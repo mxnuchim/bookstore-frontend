@@ -5,10 +5,10 @@ import { Book } from '../../types';
 
 interface propsType {
   book: Book;
-  handleBuyBook?: () => void;
+  handleBuyBook?: (id: number) => void;
 }
 
-const ProductCard: React.FC<propsType> = ({ book, handleBuyBook }) => {
+const BookCard: React.FC<propsType> = ({ book, handleBuyBook }) => {
   return (
     <div className="p-4 border border-gray-200 rounded-xl min-w-[300px] max-w-[400px]">
       <div>
@@ -27,15 +27,20 @@ const ProductCard: React.FC<propsType> = ({ book, handleBuyBook }) => {
 
         <div className="flex flex-row items-center justify-between">
           <div className="font-bold flex gap-4">${book.price}</div>
-          <div className="bg-blackish rounded-full" onClick={handleBuyBook}>
-            <p className="text-white text-base text-center px-3 py-1">
-              Buy now
-            </p>
-          </div>
+          {handleBuyBook ? (
+            <button
+              className="bg-blackish rounded-full"
+              onClick={() => handleBuyBook(book?.id)}
+            >
+              <p className="text-white text-base text-center px-3 py-1">
+                Buy now
+              </p>
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
   );
 };
 
-export default ProductCard;
+export default BookCard;

@@ -7,3 +7,11 @@ export interface Book {
   price: number;
   tags: string[];
 }
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  balance: number;
+}

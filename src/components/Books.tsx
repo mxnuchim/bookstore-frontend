@@ -2,17 +2,21 @@
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { BsSearch } from 'react-icons/bs';
-import ProductCard from './BookCard';
+import BookCard from './BookCard';
 import axios from 'axios';
 import { BASE_URL } from '../../data';
-import { Book } from '../../types';
+import { Book, User } from '../../types';
 import AnimationView from './AnimationView';
+import AuthForm from './AuthForm';
 
 const Books = () => {
   const [data, setData] = useState<Array<Book>>([]);
+  const [myBooks, setMyBooks] = useState<Array<Book>>([]);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [list, setList] = useState<'home' | 'my books'>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [userData, setUserData] = useState<User | null>();
 
   const getBooks = async () => {
     setLoading(true);
@@ -28,9 +32,53 @@ const Books = () => {
     }
   };
 
+  const getUserData = async () => {
+    const storedUserDataString = sessionStorage.getItem('user');
+
+    if (storedUserDataString !== null) {
+      const storedUserData = JSON.parse(storedUserDataString);
+      console.log('session storage data --> ', storedUserData);
+
+      const { data } = await axios.get(
+        `${BASE_URL}/user/profile/${storedUserData.id}`
+      );
+      console.log('user data --> ', data);
+      if (data.status === 200) {
+        setUserData(data.data);
+        sessionStorage.setItem('user', JSON.stringify(data.data));
+      }
+    } else {
+      console.log('No user data found in sessionStorage');
+    }
+  };
+
   useEffect(() => {
     getBooks();
+    getUserData();
   }, []);
+
+  useEffect(() => {
+    getUserBooks();
+  }, [userData?.id]);
+
+  const getUserBooks = async () => {
+    console.log('user data exists --> ', userData);
+    try {
+      setLoading(true);
+      console.log('user data --> ', userData);
+      const { data } = await axios.get(
+        `${BASE_URL}/user/${userData?.id}/books`
+      );
+      console.log('response --> ', data);
+      if (data.status === 200) {
+        setMyBooks(data?.data);
+        console.log('fetched data --> ', data);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -38,17 +86,61 @@ const Books = () => {
 
   // useEffect function to filter the data using search query
   useEffect(() => {
-    const filteredData = data.filter(
-      (book) =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.writer.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setData(filteredData);
-  }, [searchQuery]);
+    if (searchQuery) {
+      const filteredData = data.filter(
+        (book) =>
+          book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.writer.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setData(filteredData);
+    } else {
+      setData(data);
+    }
+  }, [searchQuery, data]);
 
-  const handleLinkClick = () => {
-    console.log(list);
-    list === 'home' ? setList('my books') : setList('home');
+  const handlePurchaseBook = async (bookId: number) => {
+    if (userData) {
+      const userConfirmation = window.confirm(
+        'Do you want to purchase this book?'
+      );
+      if (!userConfirmation) {
+        return;
+      }
+      console.log('purchasing book with id --> ', bookId);
+      setLoading(true);
+      const { data } = await axios.post(
+        `${BASE_URL}/books/purchase/${bookId}`,
+        {
+          userId: userData.id,
+        }
+      );
+
+      console.log('response --> ', data);
+
+      if (data.status === 200) {
+        alert('Book purchased successfully');
+        window.location.reload();
+      }
+      if (
+        data.status === 201 &&
+        data.message.toLowerCase() === 'You have already purchased this book'
+      ) {
+        alert('You have already purchased this book');
+      }
+
+      setLoading(false);
+    } else {
+      alert('Please login to purchase a book');
+      toggleModal();
+    }
+  };
+
+  const handleLinkClick = (link: 'home' | 'my books') => {
+    setList(link);
+  };
+
+  const toggleModal = () => {
+    setModalOpen(!modalOpen);
   };
   return (
     <div className="mb-10">
@@ -56,7 +148,12 @@ const Books = () => {
         <AnimationView animationType="loading" message="Loading..." />
       ) : (
         <div className="container pt-16">
-          <h2 className="font-medium text-2xl pb-4">Books</h2>
+          <div className="flex flex-row justify-between items-center">
+            <h2 className="font-medium text-2xl pb-4">Books</h2>
+            <span className="text-blackish">
+              Balance: ${userData?.balance ?? 0}
+            </span>
+          </div>
 
           <div className="w-full sm:w-[300px] md:w-[70%] mx-auto relative">
             <input
@@ -75,50 +172,69 @@ const Books = () => {
           <div className="hidden md:block py-7">
             <div className="container">
               <div className="flex w-fit gap-10 mx-auto font-medium py-4 text-blackish">
-                <a
+                <div
                   className="relative navbar__link cursor-pointer"
-                  onClick={handleLinkClick}
+                  onClick={() => handleLinkClick('home')}
                 >
                   Home
-                </a>
-                <a
+                </div>
+                <div
                   className="relative navbar__link cursor-pointer"
-                  onClick={handleLinkClick}
+                  onClick={() => handleLinkClick('my books')}
                 >
                   Your books
-                </a>
+                </div>
               </div>
             </div>
           </div>
 
-          {!Boolean(data.length) ? (
-            <AnimationView animationType="empty" message="No books to show" />
-          ) : (
-            <div>
-              {list.toLowerCase() === 'home' ? (
-                <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
-                  {data.map((item, index) => (
-                    <ProductCard book={item} key={index} />
-                  ))}
-                </div>
-              ) : null}
-              {list.toLowerCase() === 'my books' ? (
-                <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
-                  {data.map((item, index) => (
-                    <ProductCard book={item} key={index} />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          )}
+          <div>
+            {list.toLowerCase() === 'home' && (
+              <>
+                {Boolean(data.length) ? (
+                  <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
+                    {data.map((item, index) => (
+                      <BookCard
+                        book={item}
+                        key={index}
+                        handleBuyBook={(id) => handlePurchaseBook(id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <AnimationView
+                    animationType="empty"
+                    message="No books to show"
+                  />
+                )}
+              </>
+            )}
 
-          <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
-            {data.map((item, index) => (
-              <ProductCard book={item} key={index} />
-            ))}
+            {list.toLowerCase() === 'my books' && (
+              <>
+                {Boolean(myBooks.length) ? (
+                  <div className="mt-5 grid grid-cols-1 place-items-center sm:place-items-start sm:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-10 xl:gap-x-20 xl:gap-y-10">
+                    {myBooks.map((item, index) => (
+                      <BookCard book={item} key={index} />
+                    ))}
+                  </div>
+                ) : (
+                  <AnimationView
+                    animationType="empty"
+                    message={
+                      userData
+                        ? "You don't have any books"
+                        : 'Please log in to view and purchase books'
+                    }
+                  />
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
+
+      {modalOpen && <AuthForm onClose={toggleModal} type="login" />}
     </div>
   );
 };

@@ -1,8 +1,39 @@
-import React from "react";
+'use client';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 
-import { BsFacebook, BsTwitter, BsInstagram, BsLinkedin } from "react-icons/bs";
+import { BsFacebook, BsTwitter, BsInstagram, BsLinkedin } from 'react-icons/bs';
+import { BASE_URL } from '../../data';
+import { User } from '../../types';
 
 const HeaderTop = () => {
+  const [userData, setUserData] = useState<User>();
+
+  const getUserData = async () => {
+    const storedUserDataString = sessionStorage.getItem('user');
+
+    if (storedUserDataString !== null) {
+      const storedUserData = JSON.parse(storedUserDataString);
+      console.log('user data --> ', storedUserData);
+
+      const { data } = await axios.get(
+        `${BASE_URL}/user/profile/${storedUserData.id}`
+      );
+      console.log('user data --> ', data);
+      if (data.status === 200) {
+        setUserData(data.data);
+        sessionStorage.setItem('user', JSON.stringify(data.data));
+      }
+      setUserData(storedUserData);
+    } else {
+      console.log('No user data found in sessionStorage');
+    }
+  };
+
+  useEffect(() => {
+    getUserData();
+  }, []);
+
   return (
     <div className="border-b border-gray-200 hidden sm:block">
       <div className="container py-4">
@@ -27,16 +58,6 @@ const HeaderTop = () => {
           </div>
 
           <div className="flex gap-4">
-            <select
-              className="text-gray-500 text-[12px] w-[70px]"
-              name="currency"
-              id="currency"
-            >
-              <option value="USD $">USD $</option>
-              <option value="EUR €">EUR €</option>
-              <option value="INR">INR</option>
-            </select>
-
             <select
               className="text-gray-500 text-[12px] w-[80px]"
               name="language"
