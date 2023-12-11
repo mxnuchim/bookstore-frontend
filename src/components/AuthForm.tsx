@@ -103,7 +103,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose, type }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
       {loading ? (
-        <AnimationView animationType="loading" message="Signing up..." />
+        <AnimationView animationType="loading" message="Loading..." />
       ) : (
         <div className="bg-white p-6 rounded-md w-96">
           <h2 className="text-2xl font-semibold mb-4">Login or Signup</h2>
